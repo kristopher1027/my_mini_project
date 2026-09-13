@@ -10,7 +10,6 @@ print(f"Age: {age}")
 
 
 
-
 birth_date = 2000
 current_date = datetime.date.today().year
 
