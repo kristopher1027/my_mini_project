@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChronoDesk Component</title>
+
+  <link rel="stylesheet" href="css/chronodesk-theme.css">
+  <link rel="stylesheet" href="css/chronodesk-component.css">
+
+  <style>
+    /* DIRECT OVERRIDES TO PREVENT INTERCEPTION */
+    canvas, .cd-canvas {
+      pointer-events: none !important;
+    }
+
+    .cd-standalone-modal {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(0, 0, 0, 0.8) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      z-index: 9999999 !important;
+      pointer-events: auto !important;
+    }
+
+    .cd-standalone-modal.cd-hidden {
+      display: none !important;
+      pointer-events: none !important;
+    }
+
+    .cd-standalone-box {
+      background: #130a24;
+      padding: 24px;
+      border-radius: 12px;
+      width: 340px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+      position: relative !important;
+      z-index: 10000000 !important;
+      pointer-events: auto !important;
+    }
+
+    .cd-save-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #e100ff, #7f00ff);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer !important;
+      position: relative !important;
+      z-index: 10000001 !important;
+      pointer-events: auto !important;
+      user-select: none;
+    }
+
+    .cd-save-btn:active {
+      transform: scale(0.98);
+      opacity: 0.9;
+    }
+
+    /* MULTI-ALARM LIST STYLING */
+    .cd-alarm-list-container {
+      max-height: 140px;
+      overflow-y: auto;
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .cd-alarm-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .cd-delete-btn {
+      background: rgba(255, 0, 80, 0.2);
+      color: #ff4d6d;
+      border: 1px solid rgba(255, 0, 80, 0.4);
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+    }
+
+    .cd-delete-btn:hover {
+      background: rgba(255, 0, 80, 0.5);
+      color: #fff;
+    }
+
+    /* INPUT CONTROLS */
+    .cd-num-input {
+      width: 35%;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+      text-align: center;
+      outline: none;
+    }
+  </style>
+</head>
+<body style="background: #0a0518; padding: 40px; font-family: sans-serif; color: #fff;">
+
+  <div class="cd-widget-wrapper" id="chronodesk-container">
+    <canvas class="cd-canvas"></canvas>
+
+    <div class="cd-dashboard-grid">
+      <!-- CLOCK CARD -->
+      <section class="cd-card cd-clock-card">
+        <div class="cd-greeting" id="cd-greeting">Good Afternoon</div>
+        <div class="cd-clock-display" id="cd-clock">00:00:00</div>
+        <div class="cd-date-display" id="cd-date-display">Loading date...</div>
+      </section>
+
+      <!-- ACTIVE ALARMS CARD -->
+      <section class="cd-card">
+        <div class="cd-card-header cd-space-between">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span>⏰</span>
+            <h3>Active Alarms</h3>
+          </div>
+          <button type="button" id="cd-add-alarm-btn" class="cd-btn cd-btn-primary" style="padding: 6px 14px; font-size: 0.85rem; cursor: pointer;">+ Add Alarm</button>
+        </div>
+        <div>
+          <div id="cd-alarm-list" class="cd-alarm-list-container">
+            <p class="cd-subtitle" id="cd-no-alarms-msg">No alarms set</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- STOPWATCH & COUNTDOWN TIMER CARD -->
+      <section class="cd-card">
+        <div class="cd-card-header cd-space-between">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span>⏱️</span>
+            <h3 id="cd-timer-heading">Stopwatch</h3>
+          </div>
+          <button type="button" id="cd-timer-mode-btn" class="cd-btn cd-btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; cursor: pointer;">Switch to Countdown</button>
+        </div>
+        <div>
+          <p class="cd-next-alarm-status" id="cd-stopwatch-display" style="font-size: 1.8rem; font-variant-numeric: tabular-nums;">00:00.00</p>
+          
+          <!-- Countdown Time Inputs -->
+          <div id="cd-countdown-inputs" style="display: none; gap: 8px; align-items: center; margin-top: 8px;">
+            <input type="text" id="cd-cd-min" placeholder="MM" maxlength="2" value="05" class="cd-num-input" style="width: 45%; padding: 6px;" />
+            <span style="font-weight: bold; color: #fff;">:</span>
+            <input type="text" id="cd-cd-sec" placeholder="SS" maxlength="2" value="00" class="cd-num-input" style="width: 45%; padding: 6px;" />
+            <button type="button" id="cd-set-cd-btn" class="cd-btn cd-btn-primary" style="padding: 6px 10px; font-size: 0.8rem; cursor: pointer;">Set</button>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button type="button" id="cd-sw-start" class="cd-btn cd-btn-primary" style="padding: 6px 12px; font-size: 0.8rem; cursor: pointer;">Start</button>
+            <button type="button" id="cd-sw-pause" class="cd-btn cd-btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; cursor: pointer;">Pause</button>
+            <button type="button" id="cd-sw-reset" class="cd-btn cd-btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; cursor: pointer;">Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- CLOCK SETTINGS CARD -->
+      <section class="cd-card" style="grid-column: span 2;">
+        <div class="cd-card-header cd-space-between">
+          <h3>Clock Settings</h3>
+          <button type="button" id="cd-open-settings-btn" class="cd-btn cd-btn-secondary" style="padding: 6px 14px; font-size: 0.85rem; cursor: pointer;">⚙️ Theme</button>
+        </div>
+        <div class="cd-control-item">
+          <span>Time Format</span>
+          <button type="button" id="cd-format-toggle" class="cd-btn cd-btn-secondary" style="cursor: pointer;">12H</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ALARM MODAL -->
+<div id="cd-alarm-modal" class="cd-standalone-modal cd-hidden">
+  <div class="cd-standalone-box">
+    <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="font-size: 1.25rem; color: #fff; margin: 0;">⏰ Set New Alarm</h2>
+      <button type="button" id="cd-close-alarm-modal" style="background: transparent; border: none; color: #fff; font-size: 1.5rem; cursor: pointer;">&times;</button>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem; color: #fff;">Select Time</label>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <input type="text" id="cd-custom-alarm-hr" placeholder="09" maxlength="2" value="09" class="cd-num-input" />
+        <span style="font-weight: bold; color: #fff;">:</span>
+        <input type="text" id="cd-custom-alarm-min" placeholder="25" maxlength="2" value="25" class="cd-num-input" />
+        <select id="cd-custom-alarm-ampm" style="width: 30%; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2); outline: none;">
+          <option value="AM" style="background: #130a24;">AM</option>
+          <option value="PM" selected style="background: #130a24;">PM</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="button" id="cd-save-alarm-btn" class="cd-save-btn">Save Alarm</button>
+  </div>
+</div>
+  <!-- THEME SETTINGS MODAL -->
+  <div id="cd-settings-modal" class="cd-standalone-modal cd-hidden">
+    <div class="cd-standalone-box">
+      <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="font-size: 1.25rem; color: #fff; margin: 0;">⚙️ Theme Settings</h2>
+        <button type="button" id="cd-close-settings-modal" style="background: transparent; border: none; color: #fff; font-size: 1.5rem; cursor: pointer;">&times;</button>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem; color: #fff;">Theme Accent</label>
+        <select id="cd-theme-select" style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2); outline: none;">
+          <option value="dark-neon" style="background: #130a24;">Dark Neon</option>
+          <option value="cyber-amber" style="background: #130a24;">Cyber Amber</option>
+          <option value="emerald-matrix" style="background: #130a24;">Emerald Matrix</option>
+        </select>
+      </div>
+
+      <button type="button" id="cd-save-theme-btn" class="cd-save-btn">Apply Theme</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { ChronoDesk } from './js/chronodesk.js?v=12000';
+
+    // Initialize ChronoDesk Instance
+    window.chronoDeskApp = new ChronoDesk({
+      target: '#chronodesk-container',
+      theme: 'dark-neon',
+      timeFormat: 12
+    });
+
+    // RENDER ACTIVE ALARM LIST
+    function renderAlarmList() {
+      const listEl = document.getElementById('cd-alarm-list');
+      if (!listEl || !window.chronoDeskApp?.alarmEngine) return;
+
+      const alarms = window.chronoDeskApp.alarmEngine.getAlarmsList(window.chronoDeskApp.timeFormat || 12);
+
+      if (alarms.length === 0) {
+        listEl.innerHTML = '<p class="cd-subtitle" id="cd-no-alarms-msg">No alarms set</p>';
+        return;
+      }
+
+      listEl.innerHTML = alarms.map((alarm, index) => `
+        <div class="cd-alarm-item">
+          <span>🔔 ${alarm.formatted}</span>
+          <button type="button" class="cd-delete-btn" data-index="${index}">🗑 Delete</button>
+        </div>
+      `).join('');
+    }
+
+    // INITIAL RENDER
+    renderAlarmList();
+
+    // TIMER STATE MANAGEMENT
+    let timerMode = 'stopwatch'; // 'stopwatch' | 'countdown'
+    let timerInterval = null;
+    let totalMs = 0;
+
+    function renderTimerDisplay() {
+      const displayEl = document.getElementById('cd-stopwatch-display');
+      if (!displayEl) return;
+      const mins = Math.floor(totalMs / 60000);
+      const secs = Math.floor((totalMs % 60000) / 1000);
+      const ms = Math.floor((totalMs % 1000) / 10);
+      displayEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(ms).padStart(2, '0')}`;
+    }
+
+    // GLOBAL EVENT DELEGATION
+    document.addEventListener('click', (e) => {
+      // 1. Open Add Alarm Modal
+      if (e.target.closest('#cd-add-alarm-btn')) {
+        e.preventDefault();
+        document.getElementById('cd-alarm-modal')?.classList.remove('cd-hidden');
+      }
+
+      // 2. Close Add Alarm Modal
+      if (e.target.closest('#cd-close-alarm-modal')) {
+        e.preventDefault();
+        document.getElementById('cd-alarm-modal')?.classList.add('cd-hidden');
+      }
+
+      
+
+      // 3. Save Alarm Handler with Unique Input IDs
+if (e.target.closest('#cd-save-alarm-btn')) {
+  e.preventDefault();
+  
+  const hrEl = document.getElementById('cd-custom-alarm-hr');
+  const minEl = document.getElementById('cd-custom-alarm-min');
+  const ampmEl = document.getElementById('cd-custom-alarm-ampm');
+
+  // Read values directly from inputs
+  const hrVal = hrEl ? hrEl.value.trim() : '';
+  const minVal = minEl ? minEl.value.trim() : '';
+  const ampmVal = ampmEl ? ampmEl.value : 'PM';
+
+  // Parse integer values
+  const hrNum = parseInt(hrVal, 10);
+  const minNum = parseInt(minVal, 10);
+
+  // Range validation check
+  if (isNaN(hrNum) || isNaN(minNum) || hrNum < 1 || hrNum > 12 || minNum < 0 || minNum > 59) {
+    alert('Please enter a valid hour (1 to 12) and minute (0 to 59).');
+    return;
+  }
+
+  // Format with leading zeros
+  const paddedHr = String(hrNum).padStart(2, '0');
+  const paddedMin = String(minNum).padStart(2, '0');
+
+  // Add to ChronoDesk engine
+  if (window.chronoDeskApp?.alarmEngine) {
+    window.chronoDeskApp.alarmEngine.addAlarm12H(paddedHr, paddedMin, ampmVal);
+    renderAlarmList();
+  }
+
+  // Hide Modal
+  document.getElementById('cd-alarm-modal')?.classList.add('cd-hidden');
+}
+      // 4. Delete Alarm Item
+      const deleteBtn = e.target.closest('.cd-delete-btn');
+      if (deleteBtn) {
+        e.preventDefault();
+        const index = parseInt(deleteBtn.getAttribute('data-index'), 10);
+        window.chronoDeskApp.alarmEngine.deleteAlarm(index);
+        renderAlarmList();
+      }
+
+      // 5. Open / Close Theme Settings Modal
+      if (e.target.closest('#cd-open-settings-btn')) {
+        e.preventDefault();
+        document.getElementById('cd-settings-modal')?.classList.remove('cd-hidden');
+      }
+
+      if (e.target.closest('#cd-close-settings-modal')) {
+        e.preventDefault();
+        document.getElementById('cd-settings-modal')?.classList.add('cd-hidden');
+      }
+
+      if (e.target.closest('#cd-save-theme-btn')) {
+        e.preventDefault();
+        const themeSelect = document.getElementById('cd-theme-select');
+        if (themeSelect && window.chronoDeskApp) {
+          window.chronoDeskApp.theme = themeSelect.value;
+          document.getElementById('chronodesk-container')?.setAttribute('data-cd-theme', themeSelect.value);
+        }
+        document.getElementById('cd-settings-modal')?.classList.add('cd-hidden');
+      }
+
+      // 6. Toggle Stopwatch / Countdown Mode
+      if (e.target.closest('#cd-timer-mode-btn')) {
+        e.preventDefault();
+        clearInterval(timerInterval);
+        timerInterval = null;
+        
+        const headingEl = document.getElementById('cd-timer-heading');
+        const modeBtn = document.getElementById('cd-timer-mode-btn');
+        const inputsEl = document.getElementById('cd-countdown-inputs');
+
+        if (timerMode === 'stopwatch') {
+          timerMode = 'countdown';
+          if (headingEl) headingEl.textContent = 'Countdown';
+          if (modeBtn) modeBtn.textContent = 'Switch to Stopwatch';
+          if (inputsEl) inputsEl.style.display = 'flex';
+          totalMs = (5 * 60) * 1000; // Default 5 mins
+        } else {
+          timerMode = 'stopwatch';
+          if (headingEl) headingEl.textContent = 'Stopwatch';
+          if (modeBtn) modeBtn.textContent = 'Switch to Countdown';
+          if (inputsEl) inputsEl.style.display = 'none';
+          totalMs = 0;
+        }
+        renderTimerDisplay();
+      }
+
+      // 7. Set Countdown Time
+      if (e.target.closest('#cd-set-cd-btn')) {
+        e.preventDefault();
+        const m = parseInt(document.getElementById('cd-cd-min')?.value, 10) || 0;
+        const s = parseInt(document.getElementById('cd-cd-sec')?.value, 10) || 0;
+        totalMs = ((m * 60) + s) * 1000;
+        renderTimerDisplay();
+      }
+
+      // 8. Start Timer / Stopwatch
+      if (e.target.closest('#cd-sw-start')) {
+        e.preventDefault();
+        if (timerInterval) return;
+
+        const step = 10;
+        timerInterval = setInterval(() => {
+          if (timerMode === 'stopwatch') {
+            totalMs += step;
+          } else {
+            totalMs -= step;
+            if (totalMs <= 0) {
+              totalMs = 0;
+              clearInterval(timerInterval);
+              timerInterval = null;
+              alert('⏰ Countdown Timer Finished!');
+            }
+          }
+          renderTimerDisplay();
+        }, step);
+      }
+
+      // 9. Pause Timer / Stopwatch
+      if (e.target.closest('#cd-sw-pause')) {
+        e.preventDefault();
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+
+      // 10. Reset Timer / Stopwatch
+      if (e.target.closest('#cd-sw-reset')) {
+        e.preventDefault();
+        clearInterval(timerInterval);
+        timerInterval = null;
+        totalMs = timerMode === 'countdown' ? 300000 : 0;
+        renderTimerDisplay();
+      }
+    });
+  </script>
+</body>
+</html>

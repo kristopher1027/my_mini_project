@@ -1,0 +1,67 @@
+<div class="cd-widget-wrapper" id="chronodesk-container">
+  <canvas class="cd-canvas"></canvas>
+
+  <div class="cd-dashboard-grid">
+    <!-- CLOCK CARD -->
+    <section class="cd-card cd-clock-card">
+      <div class="cd-greeting" id="cd-greeting">Good Afternoon</div>
+      <div class="cd-clock-display" id="cd-clock">00:00:00</div>
+      <div class="cd-date-display" id="cd-date-display">Loading date...</div>
+    </section>
+
+    <!-- NEXT ALARM CARD -->
+    <section class="cd-card">
+      <div class="cd-card-header cd-space-between">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span>⏰</span>
+          <h3>Next Alarm</h3>
+        </div>
+        <button id="cd-add-alarm-btn" class="cd-btn cd-btn-primary" style="padding: 6px 12px; font-size: 0.8rem;">+ Add</button>
+      </div>
+      <div>
+        <p class="cd-next-alarm-status" id="cd-next-alarm-status">No alarm set</p>
+        <p class="cd-subtitle">Set an alarm to stay on track</p>
+      </div>
+    </section>
+
+    <!-- CLOCK SETTINGS CARD -->
+    <section class="cd-card">
+      <div class="cd-card-header cd-space-between">
+        <h3>Clock Settings</h3>
+        <button id="cd-open-settings-btn" class="cd-btn cd-btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">⚙️ Settings</button>
+      </div>
+      <div class="cd-control-item">
+        <span>Time Format</span>
+        <button id="cd-format-toggle" class="cd-btn cd-btn-secondary">12H</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div id="cd-settings-modal" class="cd-modal cd-hidden">
+    <div class="cd-modal-content">
+      <div class="cd-card-header cd-space-between">
+        <h2>Widget Preferences</h2>
+        <button id="cd-close-modal" class="cd-btn cd-btn-secondary">&times;</button>
+      </div>
+      
+      <!-- Theme Option -->
+      <div style="margin: 20px 0;">
+        <label style="display: block; margin-bottom: 8px; font-weight: 700;">Theme Style</label>
+        <select id="cd-theme-select" style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--cd-card-border);">
+          <option value="dark-neon">Dark Neon</option>
+          <option value="cyber-amber">Cyber Amber</option>
+          <option value="emerald-matrix">Emerald Matrix</option>
+        </select>
+      </div>
+
+      <!-- Add Alarm Input -->
+      <div style="margin: 20px 0;">
+        <label style="display: block; margin-bottom: 8px; font-weight: 700;">New Alarm Time</label>
+        <input type="time" id="cd-alarm-input" style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--cd-card-border);" />
+      </div>
+
+      <button id="cd-save-alarm" class="cd-btn cd-btn-primary" style="width: 100%; margin-top: 10px;">Save Changes</button>
+    </div>
+  </div>
+</div>

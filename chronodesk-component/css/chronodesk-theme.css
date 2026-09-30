@@ -1,0 +1,39 @@
+:root {
+  --cd-font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --cd-bg-gradient: radial-gradient(circle at 50% 0%, #1e0836 0%, #0a0518 70%, #030108 100%);
+  --cd-card-bg: rgba(23, 15, 41, 0.65);
+  --cd-card-border: rgba(255, 255, 255, 0.12);
+  --cd-text-primary: #ffffff;
+  --cd-text-secondary: #b3a2ce;
+  --cd-accent-cyan: #00f0ff;
+  --cd-accent-pink: #ff007f;
+  --cd-accent-purple: #7000ff;
+  --cd-accent-yellow: #ffb700;
+  --cd-clock-gradient: linear-gradient(135deg, #00f0ff 0%, #ff007f 50%, #ffb700 100%);
+  --cd-clock-glow: rgba(0, 240, 255, 0.35);
+  --cd-card-glow-top: linear-gradient(90deg, #ff007f, #00f0ff, #7000ff);
+  --cd-btn-primary-bg: linear-gradient(135deg, #ff007f 0%, #7000ff 100%);
+  --cd-btn-primary-glow: rgba(255, 0, 127, 0.4);
+}
+
+[data-cd-theme="cyber-amber"] {
+  --cd-bg-gradient: radial-gradient(circle at 50% 0%, #3a1a00 0%, #120800 70%, #050200 100%);
+  --cd-card-bg: rgba(35, 20, 5, 0.65);
+  --cd-clock-gradient: linear-gradient(135deg, #ffb700 0%, #ff5500 50%, #ff0055 100%);
+  --cd-clock-glow: rgba(255, 183, 0, 0.4);
+  --cd-card-glow-top: linear-gradient(90deg, #ffb700, #ff5500, #ff0055);
+  --cd-btn-primary-bg: linear-gradient(135deg, #ffb700 0%, #ff5500 100%);
+  --cd-btn-primary-glow: rgba(255, 183, 0, 0.4);
+  --cd-accent-cyan: #ffb700;
+}
+
+[data-cd-theme="emerald-matrix"] {
+  --cd-bg-gradient: radial-gradient(circle at 50% 0%, #003820 0%, #01140b 70%, #000804 100%);
+  --cd-card-bg: rgba(6, 32, 19, 0.65);
+  --cd-clock-gradient: linear-gradient(135deg, #00ff88 0%, #00f0ff 50%, #00a8ff 100%);
+  --cd-clock-glow: rgba(0, 255, 136, 0.4);
+  --cd-card-glow-top: linear-gradient(90deg, #00ff88, #00f0ff, #00a8ff);
+  --cd-btn-primary-bg: linear-gradient(135deg, #00ff88 0%, #00b359 100%);
+  --cd-btn-primary-glow: rgba(0, 255, 136, 0.4);
+  --cd-accent-cyan: #00ff88;
+}
