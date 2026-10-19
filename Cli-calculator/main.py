@@ -1,4 +1,4 @@
-  GNU nano 9.1     task3.py
+
 def add(a,b):
  return a+b
 
