@@ -17,3 +17,5 @@ def sol():
   operate = input("select  (*,/,-,+): ")
 
   num2 = input("enter Second number:  ")
+ if operate == "+" :
+   add()
